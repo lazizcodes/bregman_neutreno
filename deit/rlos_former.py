@@ -38,6 +38,8 @@ class Attention(nn.Module):
 
 
         self.alpha = 0.6
+        self.delta = 0.5
+
         self.layerth = layerth
         print(self.alpha)
 
@@ -60,9 +62,18 @@ class Attention(nn.Module):
 
 
         attn = self.attn_drop(attn)
+        
+        x = 0
+        f = 0
 
-        src = -v + v0 if v0 is not None else 0.
-        x = (attn @ v + self.alpha*src).transpose(1, 2).reshape(B, N, C) 
+        for _ in range(10):
+            src = src.alpha * f - src.delta * v
+            x = attn @ v + src
+            f = f + (v0 or 0) - x
+        
+        x = x.transpose(1, 2).reshape(B, N, C)
+        # src = -v + v0 if v0 is not None else 0.
+        # x = (attn @ v + self.alpha*src).transpose(1, 2).reshape(B, N, C) 
         # if self.layerth == 2:
         #     import pdb;pdb.set_trace()
         x = self.proj(x)
